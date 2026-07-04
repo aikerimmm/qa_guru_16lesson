@@ -4,18 +4,29 @@ import io.restassured.http.ContentType;
 import models.pojo.RegistrationBodyPojoModel;
 import models.pojo.RegistrationResponsePojoModel;
 import net.datafaker.Faker;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
 public class RegistrationTests {
+
+    String username;
+    String password;
+
+    @BeforeEach
+    public void prepareTestData() {
+        Faker faker = new Faker();
+        username = faker.name().username();  // ← без String
+        password = faker.name().firstName();
+    }
+
     @Test
     public void successfulRegistrationTest_bad_practice() {
-        Faker faker = new Faker();
-        String username = faker.name().firstName();
-        String password = faker.name().firstName();
+
 
         //move to model
         String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
@@ -38,10 +49,6 @@ public class RegistrationTests {
 
     @Test
     public void successfulRegistrationTest() {
-        Faker faker = new Faker();
-        String username = faker.name().firstName();
-        String password = faker.name().firstName();
-
         String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
 
 
@@ -60,9 +67,6 @@ public class RegistrationTests {
 
     @Test
     public void successfulRegistrationTest_with_pojo() {
-        Faker faker = new Faker();
-        String username = faker.name().username() + faker.number().digits(5);
-        String password = faker.name().firstName();
 
         RegistrationBodyPojoModel data = new RegistrationBodyPojoModel();
         data.setUsername(username);
@@ -87,9 +91,6 @@ public class RegistrationTests {
 
     @Test
     public void existingUser400Test() {
-        Faker faker = new Faker();
-        String username = faker.name().firstName();
-        String password = faker.name().firstName();
 
         String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
 
@@ -120,10 +121,6 @@ public class RegistrationTests {
 
     @Test
     public void invalidUserName400Test() {
-        Faker faker = new Faker();
-        String username = faker.name().fullName();
-        String password = faker.name().firstName();
-
         String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
 
 
@@ -141,9 +138,6 @@ public class RegistrationTests {
 
     @Test
     public void unsupportedMediaType415RegistrationTest() {
-        Faker faker = new Faker();
-        String username = faker.name().fullName();
-        String password = faker.name().firstName();
 
         String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
 
@@ -156,21 +150,16 @@ public class RegistrationTests {
                 .statusCode(415);
     }
 
-//    @Test
-//    public void negative500RegistrationTest() {
-//        Faker faker = new Faker();
-//        String username = faker.name().fullName();
-//        String password = faker.name().firstName();
-//
-//        String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
-//
-//
-//        given()
-//                .body(data)
-//                .when()
-//                .post("https://book-club.qa.guru/api/v1/users/register/")
-//                .then()
-//                .statusCode(201)
-//                .body("username", is(username));
-//    }
+    @Test
+    public void negativeRegistration400InvalidJsonTest() {
+        given()
+                .contentType(ContentType.JSON)
+                .body("broken json {{{")
+                .when()
+                .post("https://book-club.qa.guru/api/v1/users/register/")
+                .then()
+                .log().all()
+                .statusCode(400)
+                .body("detail", containsString("JSON parse error"));
+    }
 }
