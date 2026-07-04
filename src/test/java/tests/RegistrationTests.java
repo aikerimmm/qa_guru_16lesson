@@ -48,24 +48,6 @@ public class RegistrationTests {
     }
 
     @Test
-    public void successfulRegistrationTest() {
-        String data = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
-
-
-        given()
-                .log().all()
-                .contentType(ContentType.JSON)
-                .body(data)
-                .when()
-                .post("https://book-club.qa.guru/api/v1/users/register/")
-                .then()
-                .log().all()
-                .statusCode(201)
-                .body("username", is(username))
-                .body("id",notNullValue());
-    }
-
-    @Test
     public void successfulRegistrationTest_with_pojo() {
 
         RegistrationBodyPojoModel data = new RegistrationBodyPojoModel();
@@ -86,8 +68,6 @@ public class RegistrationTests {
 
         assertEquals(username, responsePojoModel.getUsername());
     }
-
-
 
     @Test
     public void existingUser400Test() {
