@@ -1,4 +1,4 @@
-package models.registartion.records;
+package models.registartion.model_examples.records;
 
 public record RegistrationResponseRecordsModel(
         Integer id,
