@@ -1,4 +1,4 @@
-package models.lombok;
+package models.registartion.lombok;
 
 
 import lombok.Data;

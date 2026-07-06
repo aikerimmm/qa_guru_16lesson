@@ -1,4 +1,4 @@
-package models.pojo;
+package models.registartion.pojo;
 
 import static java.lang.String.format;
 

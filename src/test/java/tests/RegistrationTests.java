@@ -1,13 +1,13 @@
 package tests;
 
 import io.restassured.http.ContentType;
-import models.lombok.RegistrationBodyLombokModel;
-import models.lombok.RegistrationResponseLombokModel;
-import models.pojo.RegistrationBodyPojoModel;
-import models.pojo.RegistrationResponsePojoModel;
-import models.records.ExistingUser400ResponseRecordsModel;
-import models.records.RegistrationBodyRecordsModel;
-import models.records.RegistrationResponseRecordsModel;
+import models.registartion.lombok.RegistrationBodyLombokModel;
+import models.registartion.lombok.RegistrationResponseLombokModel;
+import models.registartion.pojo.RegistrationBodyPojoModel;
+import models.registartion.pojo.RegistrationResponsePojoModel;
+import models.registartion.records.ExistingUserResponseRecordsModel;
+import models.registartion.records.RegistrationBodyRecordsModel;
+import models.registartion.records.RegistrationResponseRecordsModel;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,7 @@ public class RegistrationTests {
                 .contentType(ContentType.JSON)
                 .body(data)
                 .when()
-                .post("https://book-club.qa.guru/api/v1/users/register/")
+                .post("/users/register/")
                 .then()
                 .log().all()
                 .statusCode(201)
@@ -133,7 +133,7 @@ public class RegistrationTests {
                 .body("username", is(username))
                 .body("id", notNullValue());
 
-        ExistingUser400ResponseRecordsModel response = given()
+        ExistingUserResponseRecordsModel response = given()
                 .log().all()
                 .contentType(ContentType.JSON)
                 .body(data)
@@ -143,7 +143,7 @@ public class RegistrationTests {
                 .log().all()
                 .statusCode(400)
                 .extract()
-                .as(ExistingUser400ResponseRecordsModel.class);
+                .as(ExistingUserResponseRecordsModel.class);
 
         String expectedError = "A user with that username already exists.";
         assertEquals(expectedError, response.username().get(0));
