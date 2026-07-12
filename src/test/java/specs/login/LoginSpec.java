@@ -31,5 +31,19 @@ public class LoginSpec {
             .expectBody("detail", notNullValue())
             .build();
 
+    public static ResponseSpecification missingPasswordLoginResponseSpec = new ResponseSpecBuilder()
+            .log(ALL)
+            .expectStatusCode(400)
+            .expectBody(matchesJsonSchemaInClasspath("schemas/login/missing_password_login_response_schema.json"))
+            .expectBody("password", notNullValue())
+            .build();
+
+    public static ResponseSpecification missingUsernameLoginResponseSpec = new ResponseSpecBuilder()
+            .log(ALL)
+            .expectStatusCode(400)
+            .expectBody(matchesJsonSchemaInClasspath("schemas/login/missing_password_login_response_schema.json"))
+            .expectBody("username", notNullValue())
+            .build();
+
 }
 

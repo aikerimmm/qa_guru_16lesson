@@ -1,8 +1,6 @@
 package tests;
 
-import models.login.LoginBodyModel;
-import models.login.SuccessfulLoginResponseModel;
-import models.login.WrongCredentialsLoginResponseModel;
+import models.login.*;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -54,4 +52,40 @@ public class LoginTests extends TestBase {
 
         assertThat(actualDetailError).isEqualTo(expectedDetailError);
     }
+
+    @Test
+    public void loginWithoutPasswordTest() {
+        LoginBodyModel loginData = new LoginBodyModel(username, null);
+        MissingPasswordLoginResponseModel loginResponse = given(loginRequestSpec)
+                .body(loginData)
+                .when()
+                .post("/auth/token/")
+                .then()
+                .spec(missingPasswordLoginResponseSpec)
+                .extract()
+                .as(MissingPasswordLoginResponseModel.class);
+
+
+        assertThat(loginResponse.password().getFirst())
+                .isEqualTo("This field may not be null.");
+    }
+
+
+    @Test
+    public void loginWithoutUsernameTest() {
+        LoginBodyModel loginData = new LoginBodyModel(null, password);
+        MissingUsernameLoginResponseModel loginResponse = given(loginRequestSpec)
+                .body(loginData)
+                .when()
+                .post("/auth/token/")
+                .then()
+                .spec(missingUsernameLoginResponseSpec)
+                .extract()
+                .as(MissingUsernameLoginResponseModel.class);
+
+
+        assertThat(loginResponse.username().getFirst())
+                .isEqualTo("This field may not be null.");
+    }
+
 }

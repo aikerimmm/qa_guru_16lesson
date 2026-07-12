@@ -1,7 +1,7 @@
 package tests;
 
 import models.login.LoginBodyModel;
-import models.login.SuccessfulLoginResponseModel;
+import models.logout.LogoutBodyModel;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -9,6 +9,8 @@ import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
 import static specs.login.LoginSpec.loginRequestSpec;
 import static specs.login.LoginSpec.successfulLoginResponseSpec;
+import static specs.logout.LogoutSpec.invalidTokenLogoutResponseSpec;
+import static specs.logout.LogoutSpec.logoutRequestSpec;
 
 public class LogoutTests extends TestBase {
     String username = "qaguru";
@@ -44,6 +46,15 @@ public class LogoutTests extends TestBase {
 
     }
 
-//to add more negative tests
-    }
+    @Test
+    public void logoutWithInvalidTokenTest() {
 
+        LogoutBodyModel logoutData = new LogoutBodyModel("abcvgd7872");
+        given(logoutRequestSpec)
+                .body(logoutData)
+                .when()
+                .post("/auth/logout/")
+                .then()
+                .spec(invalidTokenLogoutResponseSpec);
+    }
+}

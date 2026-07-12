@@ -36,21 +36,21 @@ public class RegistrationSpec {
     public static ResponseSpecification missingUsernameRegistrationResponseSpec = new ResponseSpecBuilder()
             .log(ALL)
             .expectStatusCode(400)
-            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/missing_field_registration_response_schema.json"))
+            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/missing_password_registration_response_schema.json"))
             .expectBody("username", notNullValue())
             .build();
 
     public static ResponseSpecification missingPasswordRegistrationResponseSpec = new ResponseSpecBuilder()
             .log(ALL)
             .expectStatusCode(400)
-            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/missing_field_registration_response_schema.json"))
+            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/missing_password_registration_response_schema.json"))
             .expectBody("password", notNullValue())
             .build();
 
     public static ResponseSpecification emptyBodyRegistrationResponseSpec = new ResponseSpecBuilder()
             .log(ALL)
             .expectStatusCode(400)
-            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/missing_field_registration_response_schema.json"))
+            .expectBody(matchesJsonSchemaInClasspath("schemas/registration/missing_password_registration_response_schema.json"))
             .expectBody("username", notNullValue())
             .expectBody("password", notNullValue())
             .build();
