@@ -1,16 +1,13 @@
 package tests;
 
-import io.restassured.http.ContentType;
 import models.login.LoginBodyModel;
 import models.login.SuccessfulLoginResponseModel;
 import models.login.WrongCredentialsLoginResponseModel;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static specs.login.LoginSpec.*;
 
 
 public class LoginTests extends TestBase {
@@ -22,21 +19,13 @@ public class LoginTests extends TestBase {
     @Test
     public void successfulLoginTest() {
         LoginBodyModel loginData = new LoginBodyModel(username, password);
-        SuccessfulLoginResponseModel loginResponse = given()
-                .log().all()
-                .contentType(ContentType.JSON)
+        SuccessfulLoginResponseModel loginResponse = given(loginRequestSpec)
                 .body(loginData)
-                .basePath("/api/v1")
                 .when()
                 .post("/auth/token/")
                 .then()
-                .log().all()
-                .statusCode(200)
-                .body(matchesJsonSchemaInClasspath("schemas/login/successful_login_response_schema.json"))
-                .body("access", notNullValue())
-                .body("refresh", notNullValue())
-                .extract()
-                .as(SuccessfulLoginResponseModel.class);
+                .spec(successfulLoginResponseSpec)
+                .extract().as(SuccessfulLoginResponseModel.class);
 
         String expectedTokenPath = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
         String actualAccess = loginResponse.access();
@@ -51,19 +40,12 @@ public class LoginTests extends TestBase {
     @Test
     public void wrongCredentialsLoginTest() {
         LoginBodyModel loginData = new LoginBodyModel(username, wrongPassword);;
-        WrongCredentialsLoginResponseModel loginResponse = given()
-                .log().all()
-                .contentType(ContentType.JSON)
+        WrongCredentialsLoginResponseModel loginResponse = given(loginRequestSpec)
                 .body(loginData)
-                .basePath("/api/v1")
                 .when()
                 .post("/auth/token/")
                 .then()
-                .log().all()
-                .statusCode(401)
-                .body(matchesJsonSchemaInClasspath
-                        ("schemas/login/wrong_credentials_login_response_schema.json"))
-                .body("detail", notNullValue())
+                .spec(wrongCredentialsLoginResponseSpec)
                 .extract()
                 .as(WrongCredentialsLoginResponseModel.class);
 

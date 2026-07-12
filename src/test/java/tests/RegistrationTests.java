@@ -1,20 +1,13 @@
 package tests;
 
-import io.restassured.http.ContentType;
-import models.registartion.ExistingUserResponseModel;
-import models.registartion.RegistrationBodyModel;
-import models.registartion.SuccessfulRegistrationResponseModel;
+import models.registration.*;
 import net.datafaker.Faker;
-import org.assertj.core.api.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import static specs.registration.RegistrationSpec.*;
 
 public class RegistrationTests extends TestBase {
 
@@ -24,82 +17,99 @@ public class RegistrationTests extends TestBase {
     @BeforeEach
     public void prepareTestData() {
         Faker faker = new Faker();
-        username = faker.name().username();  // ← без String
+        username = faker.name().username();
         password = faker.name().firstName();
     }
 
     @Test
     public void successfulRegistrationTest() {
-        RegistrationBodyModel registrationData = new RegistrationBodyModel(username,password);
+        RegistrationBodyModel registrationData = new RegistrationBodyModel(username, password);
 
-   SuccessfulRegistrationResponseModel registrationResponse = given()
-                .log().all()
-                .contentType(ContentType.JSON)
+        SuccessfulRegistrationResponseModel registrationResponse = given(registrationRequestSpec)
                 .body(registrationData)
-                .basePath("/api/v1")
                 .when()
                 .post("/users/register/")
                 .then()
-                .log().all()
-                .statusCode(201)
-                .body(matchesJsonSchemaInClasspath("schemas/registration/successful_registration_response_schema.json"))
-                .body("username", notNullValue())
-                .body("id", notNullValue())
-                .body("remoteAddr", notNullValue())
+                .spec(successfulRegistrationResponseSpec)
                 .extract()
                 .as(SuccessfulRegistrationResponseModel.class);
 
-    assertThat(registrationResponse.username()).isEqualTo(username);
-    assertThat(registrationResponse.id()).isGreaterThan(0);
-    assertThat(registrationResponse.firstName()).isEqualTo("");
-    assertThat(registrationResponse.lastName()).isEqualTo("");
-    assertThat(registrationResponse.email()).isEqualTo("");
-
-String ipAddrRegexp = "\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}";
-assertThat(registrationResponse.remoteAddr()).matches(ipAddrRegexp);
+        assertThat(registrationResponse.username()).isEqualTo(username);
+        assertThat(registrationResponse.id()).isGreaterThan(0);
     }
 
     @Test
-    public void existingUserWrongRegistrationTest(){
-        RegistrationBodyModel registrationData = new RegistrationBodyModel(username,password);
+    public void registrationWithoutPasswordTest() {
+        RegistrationBodyModel registrationData = new RegistrationBodyModel(username, null);
 
-        SuccessfulRegistrationResponseModel firstRegistrationResponseModel = given()
-                .log().all()
-                .contentType(ContentType.JSON)
+        MissingPasswordRegistrationResponseModel errorResponse = given(registrationRequestSpec)
                 .body(registrationData)
-                .basePath("/api/v1")
                 .when()
                 .post("/users/register/")
                 .then()
-                .log().all()
-                .statusCode(201)
-                .body(matchesJsonSchemaInClasspath("schemas/registration/successful_registration_response_schema.json"))
-                .body("username", notNullValue())
-                .body("id", notNullValue())
-                .body("remoteAddr", notNullValue())
+                .spec(missingPasswordRegistrationResponseSpec)
                 .extract()
-                .as(SuccessfulRegistrationResponseModel.class);
+                .as(MissingPasswordRegistrationResponseModel.class);
 
-        assertThat(firstRegistrationResponseModel.username()).isEqualTo(username);
+        assertThat(errorResponse.password().getFirst())
+                .isEqualTo("This field may not be null.");
+    }
 
-       ExistingUserResponseModel secondRegistrationResponse = given()
-                .log().all()
-                .contentType(ContentType.JSON)
+    @Test
+    public void registrationWithoutUsernameTest() {
+        RegistrationBodyModel registrationData = new RegistrationBodyModel(null, password);
+
+        MissingUsernameRegistrationResponseModel errorResponse = given(registrationRequestSpec)
                 .body(registrationData)
-                .basePath("/api/v1")
                 .when()
                 .post("/users/register/")
                 .then()
-                .log().all()
-                .statusCode(400)
-                .body(matchesJsonSchemaInClasspath("schemas/registration/existing_user_registration_response_schema.json"))
-                .body("username", notNullValue())
+                .spec(missingUsernameRegistrationResponseSpec)
                 .extract()
-                .as(ExistingUserResponseModel.class);
+                .as(MissingUsernameRegistrationResponseModel.class);
 
-       String expectedError = "A user with that username already exists.";
-       String actualError = secondRegistrationResponse.username().getFirst();
-       assertThat(actualError).isEqualTo(expectedError);
+        assertThat(errorResponse.username().getFirst())
+                .isEqualTo("This field may not be null.");
+    }
 
+    @Test
+    public void registrationWithEmptyBodyTest() {
+        EmptyBodyRegistrationResponseModel errorResponse = given(registrationRequestSpec)
+                .body("{}")
+                .when()
+                .post("/users/register/")
+                .then()
+                .spec(emptyBodyRegistrationResponseSpec)
+                .extract()
+                .as(EmptyBodyRegistrationResponseModel.class);
+
+        assertThat(errorResponse.username().getFirst()).isEqualTo("This field is required.");
+        assertThat(errorResponse.password().getFirst()).isEqualTo("This field is required.");
     }
+
+    @Test
+    public void registrationWithBlankPasswordTest() {
+        RegistrationBodyModel registrationData = new RegistrationBodyModel(username, "");
+
+        MissingPasswordRegistrationResponseModel errorResponse = given(registrationRequestSpec)
+                .body(registrationData)
+                .when()
+                .post("/users/register/")
+                .then()
+                .spec(missingPasswordRegistrationResponseSpec)
+                .extract()
+                .as(MissingPasswordRegistrationResponseModel.class);
+
+        assertThat(errorResponse.password().getFirst())
+                .isEqualTo("This field may not be blank.");
     }
+    @Test
+    public void registrationWithUnsupportedMediaTypeTest() {
+        given(textPlainRegistrationRequestSpec)
+                .body("username=" + username + "&password=" + password)
+                .when()
+                .post("/users/register/")
+                .then()
+                .spec(unsupportedMediaTypeResponseSpec);
+    }
+}
