@@ -1,5 +1,6 @@
 package specs.logout;
 
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -10,6 +11,7 @@ import static io.restassured.filter.log.LogDetail.ALL;
 
 public class LogoutSpec {
     public static RequestSpecification logoutRequestSpec = with()
+            .filter(new AllureRestAssured())
             .log().all()
             .contentType(ContentType.JSON)
             .basePath("/api/v1");

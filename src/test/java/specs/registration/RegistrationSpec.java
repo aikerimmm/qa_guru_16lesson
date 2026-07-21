@@ -1,5 +1,6 @@
 package specs.registration;
 
+import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -13,6 +14,7 @@ import static org.hamcrest.Matchers.notNullValue;
 public class RegistrationSpec {
 
     public static RequestSpecification registrationRequestSpec = with()
+            .filter(new AllureRestAssured())
             .log().all()
             .contentType(ContentType.JSON)
             .basePath("/api/v1");
