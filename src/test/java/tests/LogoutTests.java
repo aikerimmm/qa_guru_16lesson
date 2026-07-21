@@ -4,6 +4,7 @@ import models.login.LoginBodyModel;
 import models.logout.LogoutBodyModel;
 import org.junit.jupiter.api.Test;
 
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
@@ -20,30 +21,30 @@ public class LogoutTests extends TestBase {
     public void successfulLogoutTest() {
         LoginBodyModel loginData = new LoginBodyModel(username, password);
 
-        String refreshToken = given(loginRequestSpec)
-                .body(loginData)
-                .when()
-                .post("/auth/token/")
-                .then()
-                .spec(successfulLoginResponseSpec)
-                .extract().path("refresh");
+        String refreshToken = step("Авторизация и получение токена", () ->
+                given(loginRequestSpec)
+                        .body(loginData)
+                        .when()
+                        .post("/auth/token/")
+                        .then()
+                        .spec(successfulLoginResponseSpec)
+                        .extract().path("refresh"));
 
-//todo move to models & specs
-        String logoutData = format("{\"refresh\": \"%s\"}", refreshToken);
+        step("Отправка запроса logout с refresh-токеном и проверка ответа (200)", () -> {
+            LogoutBodyModel logoutData = new LogoutBodyModel(refreshToken);
 
-        given()
-                .log().all()
-                .contentType(JSON)
-                .body(logoutData)
-                .basePath("/api/v1")
-                .when()
-                .post("/auth/logout/")
-                .then()
-                .log().all()
-                .statusCode(200);
 
-        //todo check logoutResponse is empty
+            given(logoutRequestSpec)
+                    .body(logoutData)
+                    .when()
+                    .post("/auth/logout/")
+                    .then()
+                    .log().all()
+                    .statusCode(200);
 
+            //todo check logoutResponse is empty
+
+        });
     }
 
     @Test
