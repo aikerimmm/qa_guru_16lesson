@@ -1,6 +1,5 @@
 package specs.registration;
 
-import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -13,10 +12,9 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public class RegistrationSpec {
 
-    public static RequestSpecification registrationRequestSpec = with()
-            .filter(new AllureRestAssured())
+    public static RequestSpecification textPlainRegistrationRequestSpec = with()
             .log().all()
-            .contentType(ContentType.JSON)
+            .contentType(ContentType.TEXT)
             .basePath("/api/v1");
 
     public static ResponseSpecification successfulRegistrationResponseSpec = new ResponseSpecBuilder()
@@ -56,10 +54,6 @@ public class RegistrationSpec {
             .expectBody("username", notNullValue())
             .expectBody("password", notNullValue())
             .build();
-    public static RequestSpecification textPlainRegistrationRequestSpec = with()
-            .log().all()
-            .contentType(ContentType.TEXT)
-            .basePath("/api/v1");
 
     public static ResponseSpecification unsupportedMediaTypeResponseSpec = new ResponseSpecBuilder()
             .log(ALL)

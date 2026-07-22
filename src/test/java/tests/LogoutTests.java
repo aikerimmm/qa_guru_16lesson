@@ -6,12 +6,9 @@ import org.junit.jupiter.api.Test;
 
 import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.given;
-import static io.restassured.http.ContentType.JSON;
-import static java.lang.String.format;
-import static specs.login.LoginSpec.loginRequestSpec;
+import static specs.BaseSpec.baseRequestSpec;
 import static specs.login.LoginSpec.successfulLoginResponseSpec;
 import static specs.logout.LogoutSpec.invalidTokenLogoutResponseSpec;
-import static specs.logout.LogoutSpec.logoutRequestSpec;
 
 public class LogoutTests extends TestBase {
     String username = "qaguru";
@@ -22,7 +19,7 @@ public class LogoutTests extends TestBase {
         LoginBodyModel loginData = new LoginBodyModel(username, password);
 
         String refreshToken = step("Авторизация и получение токена", () ->
-                given(loginRequestSpec)
+                given(baseRequestSpec)
                         .body(loginData)
                         .when()
                         .post("/auth/token/")
@@ -34,7 +31,7 @@ public class LogoutTests extends TestBase {
             LogoutBodyModel logoutData = new LogoutBodyModel(refreshToken);
 
 
-            given(logoutRequestSpec)
+            given(baseRequestSpec)
                     .body(logoutData)
                     .when()
                     .post("/auth/logout/")
@@ -51,7 +48,7 @@ public class LogoutTests extends TestBase {
     public void logoutWithInvalidTokenTest() {
 
         LogoutBodyModel logoutData = new LogoutBodyModel("abcvgd7872");
-        given(logoutRequestSpec)
+        given(baseRequestSpec)
                 .body(logoutData)
                 .when()
                 .post("/auth/logout/")

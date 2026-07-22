@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static specs.login.LoginSpec.loginRequestSpec;
+import static specs.BaseSpec.baseRequestSpec;
 import static specs.login.LoginSpec.successfulLoginResponseSpec;
-import static specs.registration.RegistrationSpec.registrationRequestSpec;
 import static specs.registration.RegistrationSpec.successfulRegistrationResponseSpec;
-import static specs.user.UpdateUserSpec.*;
+import static specs.user.UpdateUserSpec.successfulUpdateUserResponseSpec;
+import static specs.user.UpdateUserSpec.unauthorizedUpdateUserResponseSpec;
 
 public class UpdateUserTests extends TestBase {
 
@@ -30,7 +30,7 @@ public class UpdateUserTests extends TestBase {
 
         RegistrationBodyModel registrationData = new RegistrationBodyModel(username, password);
 
-        given(registrationRequestSpec)
+        given(baseRequestSpec)
                 .body(registrationData)
                 .when()
                 .post("/users/register/")
@@ -39,7 +39,7 @@ public class UpdateUserTests extends TestBase {
 
         LoginBodyModel loginData = new LoginBodyModel(username, password);
 
-        accessToken = given(loginRequestSpec)
+        accessToken = given(baseRequestSpec)
                 .body(loginData)
                 .when()
                 .post("/auth/token/")
@@ -56,7 +56,7 @@ public class UpdateUserTests extends TestBase {
                 faker.name().lastName(),
                 faker.internet().emailAddress()
         );
-        UpdateUserResponseModel response = given(updateUserRequestSpec)
+        UpdateUserResponseModel response = given(baseRequestSpec)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateData)
                 .when()
@@ -76,7 +76,7 @@ public class UpdateUserTests extends TestBase {
                 null,
                 null
         );
-        UpdateUserResponseModel response = given(updateUserRequestSpec)
+        UpdateUserResponseModel response = given(baseRequestSpec)
                 .header("Authorization", "Bearer " + accessToken)
                 .body(updateData)
                 .when()
@@ -97,7 +97,7 @@ public class UpdateUserTests extends TestBase {
                 null
         );
 
-        given(updateUserRequestSpec)
+        given(baseRequestSpec)
                 .body(updateData)
                 .when()
                 .patch("/users/me/")

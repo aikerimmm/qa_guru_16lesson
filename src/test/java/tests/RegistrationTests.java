@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static specs.BaseSpec.baseRequestSpec;
 import static specs.registration.RegistrationSpec.*;
 
 public class RegistrationTests extends TestBase {
@@ -25,7 +26,7 @@ public class RegistrationTests extends TestBase {
     public void successfulRegistrationTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(username, password);
 
-        SuccessfulRegistrationResponseModel registrationResponse = given(registrationRequestSpec)
+        SuccessfulRegistrationResponseModel registrationResponse = given(baseRequestSpec)
                 .body(registrationData)
                 .when()
                 .post("/users/register/")
@@ -42,7 +43,7 @@ public class RegistrationTests extends TestBase {
     public void registrationWithoutPasswordTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(username, null);
 
-        MissingPasswordRegistrationResponseModel errorResponse = given(registrationRequestSpec)
+        MissingPasswordRegistrationResponseModel errorResponse = given(baseRequestSpec)
                 .body(registrationData)
                 .when()
                 .post("/users/register/")
@@ -59,7 +60,7 @@ public class RegistrationTests extends TestBase {
     public void registrationWithoutUsernameTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(null, password);
 
-        MissingUsernameRegistrationResponseModel errorResponse = given(registrationRequestSpec)
+        MissingUsernameRegistrationResponseModel errorResponse = given(baseRequestSpec)
                 .body(registrationData)
                 .when()
                 .post("/users/register/")
@@ -74,7 +75,7 @@ public class RegistrationTests extends TestBase {
 
     @Test
     public void registrationWithEmptyBodyTest() {
-        EmptyBodyRegistrationResponseModel errorResponse = given(registrationRequestSpec)
+        EmptyBodyRegistrationResponseModel errorResponse = given(baseRequestSpec)
                 .body("{}")
                 .when()
                 .post("/users/register/")
@@ -91,7 +92,7 @@ public class RegistrationTests extends TestBase {
     public void registrationWithBlankPasswordTest() {
         RegistrationBodyModel registrationData = new RegistrationBodyModel(username, "");
 
-        MissingPasswordRegistrationResponseModel errorResponse = given(registrationRequestSpec)
+        MissingPasswordRegistrationResponseModel errorResponse = given(baseRequestSpec)
                 .body(registrationData)
                 .when()
                 .post("/users/register/")
