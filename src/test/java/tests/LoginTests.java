@@ -1,15 +1,15 @@
 package tests;
 
+import api.ApiClient;
 import models.login.*;
 import org.junit.jupiter.api.Test;
 
 import static io.qameta.allure.Allure.step;
-import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static specs.BaseSpec.baseRequestSpec;
-import static specs.login.LoginSpec.*;
 
 public class LoginTests extends TestBase {
+
+    ApiClient api = new ApiClient();
 
     String username = "qaguru";
     String password = "qaguru123";
@@ -17,17 +17,8 @@ public class LoginTests extends TestBase {
 
     @Test
     public void successfulLoginTest() {
-        LoginBodyModel loginData = step("Подготовка тела запроса с валидными данными", () ->
-                new LoginBodyModel(username, password));
-
-        SuccessfulLoginResponseModel loginResponse = step("Отправка запроса на авторизацию", () ->
-                given(baseRequestSpec)
-                        .body(loginData)
-                        .when()
-                        .post("/auth/token/")
-                        .then()
-                        .spec(successfulLoginResponseSpec)
-                        .extract().as(SuccessfulLoginResponseModel.class));
+        LoginBodyModel loginData = new LoginBodyModel(username, password);
+        SuccessfulLoginResponseModel loginResponse = api.auth.login(loginData);
 
         step("Проверка полученных access и refresh токенов", () -> {
             String expectedTokenPath = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9";
@@ -39,35 +30,17 @@ public class LoginTests extends TestBase {
 
     @Test
     public void wrongCredentialsLoginTest() {
-        LoginBodyModel loginData = step("Подготовка тела запроса с неверным паролем", () ->
-                new LoginBodyModel(username, wrongPassword));
+        LoginBodyModel loginData = new LoginBodyModel(username, wrongPassword);
+        WrongCredentialsLoginResponseModel loginResponse = api.auth.loginWithWrongCredentials(loginData);
 
-        WrongCredentialsLoginResponseModel loginResponse = step("Отправка запроса с неверными данными", () ->
-                given(baseRequestSpec)
-                        .body(loginData)
-                        .when()
-                        .post("/auth/token/")
-                        .then()
-                        .spec(wrongCredentialsLoginResponseSpec)
-                        .extract().as(WrongCredentialsLoginResponseModel.class));
-
-        step("Проверка сообщения об ошибке в ответе", () ->
+        step("Проверка сообщения об ошибке", () ->
                 assertThat(loginResponse.detail()).isEqualTo("Invalid username or password."));
     }
 
     @Test
     public void loginWithoutPasswordTest() {
-        LoginBodyModel loginData = step("Подготовка тела запроса без пароля", () ->
-                new LoginBodyModel(username, null));
-
-        MissingPasswordLoginResponseModel loginResponse = step("Отправка запроса без пароля", () ->
-                given(baseRequestSpec)
-                        .body(loginData)
-                        .when()
-                        .post("/auth/token/")
-                        .then()
-                        .spec(missingPasswordLoginResponseSpec)
-                        .extract().as(MissingPasswordLoginResponseModel.class));
+        LoginBodyModel loginData = new LoginBodyModel(username, null);
+        MissingPasswordLoginResponseModel loginResponse = api.auth.loginWithoutPassword(loginData);
 
         step("Проверка сообщения об отсутствии пароля", () ->
                 assertThat(loginResponse.password().getFirst())
@@ -76,17 +49,8 @@ public class LoginTests extends TestBase {
 
     @Test
     public void loginWithoutUsernameTest() {
-        LoginBodyModel loginData = step("Подготовка тела запроса без имени пользователя", () ->
-                new LoginBodyModel(null, password));
-
-        MissingUsernameLoginResponseModel loginResponse = step("Отправка запроса без имени пользователя", () ->
-                given(baseRequestSpec)
-                        .body(loginData)
-                        .when()
-                        .post("/auth/token/")
-                        .then()
-                        .spec(missingUsernameLoginResponseSpec)
-                        .extract().as(MissingUsernameLoginResponseModel.class));
+        LoginBodyModel loginData = new LoginBodyModel(null, password);
+        MissingUsernameLoginResponseModel loginResponse = api.auth.loginWithoutUsername(loginData);
 
         step("Проверка сообщения об отсутствии имени пользователя", () ->
                 assertThat(loginResponse.username().getFirst())

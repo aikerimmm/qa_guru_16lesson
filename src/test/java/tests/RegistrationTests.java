@@ -1,116 +1,82 @@
 package tests;
 
+import api.ApiClient;
 import models.registration.*;
 import net.datafaker.Faker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
+import static io.qameta.allure.Allure.step;
 import static org.assertj.core.api.Assertions.assertThat;
-import static specs.BaseSpec.baseRequestSpec;
-import static specs.registration.RegistrationSpec.*;
 
 public class RegistrationTests extends TestBase {
+
+    ApiClient api = new ApiClient();
+    Faker faker = new Faker();
 
     String username;
     String password;
 
     @BeforeEach
     public void prepareTestData() {
-        Faker faker = new Faker();
         username = faker.name().username();
         password = faker.name().firstName();
     }
 
     @Test
     public void successfulRegistrationTest() {
-        RegistrationBodyModel registrationData = new RegistrationBodyModel(username, password);
+        RegistrationBodyModel data = new RegistrationBodyModel(username, password);
+        SuccessfulRegistrationResponseModel response = api.users.register(data);
 
-        SuccessfulRegistrationResponseModel registrationResponse = given(baseRequestSpec)
-                .body(registrationData)
-                .when()
-                .post("/users/register/")
-                .then()
-                .spec(successfulRegistrationResponseSpec)
-                .extract()
-                .as(SuccessfulRegistrationResponseModel.class);
-
-        assertThat(registrationResponse.username()).isEqualTo(username);
-        assertThat(registrationResponse.id()).isGreaterThan(0);
+        step("Verify registered user data", () -> {
+            assertThat(response.username()).isEqualTo(username);
+            assertThat(response.id()).isGreaterThan(0);
+        });
     }
 
     @Test
     public void registrationWithoutPasswordTest() {
-        RegistrationBodyModel registrationData = new RegistrationBodyModel(username, null);
+        RegistrationBodyModel data = new RegistrationBodyModel(username, null);
+        MissingPasswordRegistrationResponseModel response = api.users.registerWithoutPassword(data);
 
-        MissingPasswordRegistrationResponseModel errorResponse = given(baseRequestSpec)
-                .body(registrationData)
-                .when()
-                .post("/users/register/")
-                .then()
-                .spec(missingPasswordRegistrationResponseSpec)
-                .extract()
-                .as(MissingPasswordRegistrationResponseModel.class);
-
-        assertThat(errorResponse.password().getFirst())
-                .isEqualTo("This field may not be null.");
+        step("Verify missing password error", () ->
+                assertThat(response.password().getFirst())
+                        .isEqualTo("This field may not be null."));
     }
 
     @Test
     public void registrationWithoutUsernameTest() {
-        RegistrationBodyModel registrationData = new RegistrationBodyModel(null, password);
+        RegistrationBodyModel data = new RegistrationBodyModel(null, password);
+        MissingUsernameRegistrationResponseModel response = api.users.registerWithoutUsername(data);
 
-        MissingUsernameRegistrationResponseModel errorResponse = given(baseRequestSpec)
-                .body(registrationData)
-                .when()
-                .post("/users/register/")
-                .then()
-                .spec(missingUsernameRegistrationResponseSpec)
-                .extract()
-                .as(MissingUsernameRegistrationResponseModel.class);
-
-        assertThat(errorResponse.username().getFirst())
-                .isEqualTo("This field may not be null.");
+        step("Verify missing username error", () ->
+                assertThat(response.username().getFirst())
+                        .isEqualTo("This field may not be null."));
     }
 
     @Test
     public void registrationWithEmptyBodyTest() {
-        EmptyBodyRegistrationResponseModel errorResponse = given(baseRequestSpec)
-                .body("{}")
-                .when()
-                .post("/users/register/")
-                .then()
-                .spec(emptyBodyRegistrationResponseSpec)
-                .extract()
-                .as(EmptyBodyRegistrationResponseModel.class);
+        EmptyBodyRegistrationResponseModel response = api.users.registerWithEmptyBody();
 
-        assertThat(errorResponse.username().getFirst()).isEqualTo("This field is required.");
-        assertThat(errorResponse.password().getFirst()).isEqualTo("This field is required.");
+        step("Verify empty body errors", () -> {
+            assertThat(response.username().getFirst()).isEqualTo("This field is required.");
+            assertThat(response.password().getFirst()).isEqualTo("This field is required.");
+        });
     }
 
     @Test
     public void registrationWithBlankPasswordTest() {
-        RegistrationBodyModel registrationData = new RegistrationBodyModel(username, "");
+        RegistrationBodyModel data = new RegistrationBodyModel(username, "");
+        MissingPasswordRegistrationResponseModel response = api.users.registerWithoutPassword(data);
 
-        MissingPasswordRegistrationResponseModel errorResponse = given(baseRequestSpec)
-                .body(registrationData)
-                .when()
-                .post("/users/register/")
-                .then()
-                .spec(missingPasswordRegistrationResponseSpec)
-                .extract()
-                .as(MissingPasswordRegistrationResponseModel.class);
-
-        assertThat(errorResponse.password().getFirst())
-                .isEqualTo("This field may not be blank.");
+        step("Verify blank password error", () ->
+                assertThat(response.password().getFirst())
+                        .isEqualTo("This field may not be blank."));
     }
+
     @Test
     public void registrationWithUnsupportedMediaTypeTest() {
-        given(textPlainRegistrationRequestSpec)
-                .body("username=" + username + "&password=" + password)
-                .when()
-                .post("/users/register/")
-                .then()
-                .spec(unsupportedMediaTypeResponseSpec);
+        String body = "username=" + username + "&password=" + password;
+        api.users.registerWithUnsupportedMediaType(body);
     }
 }
